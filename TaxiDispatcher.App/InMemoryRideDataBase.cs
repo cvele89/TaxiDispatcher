@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using static TaxiDispatcher.App.Scheduler;
 
 namespace TaxiDispatcher.App
@@ -9,30 +10,21 @@ namespace TaxiDispatcher.App
 
         public static void SaveRide(Ride ride)
         {
-            int max_id = Rides.Count == 0 ? 0 : Rides[0].Id;
-            foreach (Ride r in Rides)
+            var idList = GetRideIds();
+            if (idList.Count > 0)
             {
-                if (r.Id > max_id)
-                    max_id = r.Id;
+                idList.Sort((x, y) => x > y ? -1 : 1);
+                ride.Id = idList[0] + 1;
             }
+            else
+                ride.Id = 1;
 
-            ride.Id = max_id + 1;
-            Rides.Add(ride);
+            Rides.Add(ride);            
         }
 
         public static Ride GetRide(int id)
         {
-            Ride ride = Rides[0];
-            bool found = ride.Id == id;
-            int current = 1;
-            while (!found)
-            {
-                ride = Rides[current];
-                found = ride.Id == id;
-                current += 1;
-            }
-
-            return ride;
+            return Rides.FirstOrDefault(x => x.Id == id);
         }
 
         public static List<int> GetRideIds()

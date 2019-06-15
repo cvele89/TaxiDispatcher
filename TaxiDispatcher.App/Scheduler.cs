@@ -68,7 +68,7 @@ namespace TaxiDispatcher.App
             foreach (int id in ids)
             {
                 Ride ride = InMemoryRideDataBase.GetRide(id);
-                if (ride.TaxiInfo.DriverId == driverId)
+                if (ride != null && ride.TaxiInfo.DriverId == driverId)
                     rides.Add(ride);
             }
 
