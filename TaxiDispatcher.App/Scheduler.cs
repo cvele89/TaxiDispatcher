@@ -28,14 +28,7 @@ namespace TaxiDispatcher.App
             Console.WriteLine($"Ordering ride from {startLocation} to {endLocation}...");
             try
             {
-                Ride ride = new Ride
-                {
-                    TaxiInfo = FindNearestTaxi(startLocation),
-                    StartLocation = startLocation,
-                    EndLocation = endLocation,
-                    RideType = rideType,
-                    Time = time
-                };
+                var ride = CreateRide(startLocation, endLocation, rideType, time);
                 Console.WriteLine("Ride ordered, price: " + ride.Price.ToString());
                 AcceptRide(ride);
             }
@@ -51,7 +44,31 @@ namespace TaxiDispatcher.App
             }
         }
 
-        public void AcceptRide(Ride ride)
+        public void PrintDriverEarnings(int driverId)
+        {
+            Console.WriteLine($"Driver with ID = {driverId} earned today:");
+            int total = 0;
+            foreach (var ride in GetRideList(driverId))
+            {
+                total += ride.Price;
+                Console.WriteLine("Price: " + ride.Price);
+            }
+            Console.WriteLine("Total: " + total);
+        }
+
+        private Ride CreateRide(int startLocation, int endLocation, RideType rideType, DateTime time)
+        {
+            return new Ride
+            {
+                TaxiInfo = FindNearestTaxi(startLocation),
+                StartLocation = startLocation,
+                EndLocation = endLocation,
+                RideType = rideType,
+                Time = time
+            };
+        }
+
+        private void AcceptRide(Ride ride)
         {
             InMemoryRideDataBase.SaveRide(ride);
 
@@ -60,8 +77,8 @@ namespace TaxiDispatcher.App
             Console.WriteLine("Ride accepted, waiting for driver: " + ride.TaxiInfo.DriverName);
             Console.WriteLine("");
         }
-
-        public List<Ride> GetRideList(int driverId)
+        
+        private List<Ride> GetRideList(int driverId)
         {
             List<Ride> rides = new List<Ride>();
             List<int> ids = InMemoryRideDataBase.GetRideIds();
