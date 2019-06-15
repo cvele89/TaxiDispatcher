@@ -15,50 +15,20 @@ namespace TaxiDispatcher.App
         protected static TaxiCompany taxiCompany_Alfa = new TaxiCompany { CompanyName = "Alfa", PriceModifier = 15 };
         protected static TaxiCompany taxiCompany_Gold = new TaxiCompany { CompanyName = "Gold", PriceModifier = 13 };
 
-        protected Taxi taxi1 = new Taxi { DriverId = 1, DriverName = "Predrag", Company = taxiCompany_Naxi, CurrentLocation = 1 };
-        protected Taxi taxi2 = new Taxi { DriverId = 2, DriverName = "Nenad", Company = taxiCompany_Naxi, CurrentLocation = 4 };
-        protected Taxi taxi3 = new Taxi { DriverId = 3, DriverName = "Dragan", Company = taxiCompany_Alfa, CurrentLocation = 6 };
-        protected Taxi taxi4 = new Taxi { DriverId = 4, DriverName = "Goran", Company = taxiCompany_Gold, CurrentLocation = 7 };
+        protected List<Taxi> taxiDrivers = new List<Taxi>
+        {
+            new Taxi { DriverId = 1, DriverName = "Predrag", Company = taxiCompany_Naxi, CurrentLocation = 1 },
+            new Taxi { DriverId = 2, DriverName = "Nenad", Company = taxiCompany_Naxi, CurrentLocation = 4 },
+            new Taxi { DriverId = 3, DriverName = "Dragan", Company = taxiCompany_Alfa, CurrentLocation = 6 },
+            new Taxi { DriverId = 4, DriverName = "Goran", Company = taxiCompany_Gold, CurrentLocation = 7 }
+        };
 
         public Ride OrderRide(int startLocation, int endLocation, RideType rideType, DateTime time)
         {
-            #region FindingTheBestVehicle 
-
-            Taxi nearestTaxi = taxi1;
-            int min_distance = Math.Abs(taxi1.CurrentLocation - startLocation);
-
-            if (Math.Abs(taxi2.CurrentLocation - startLocation) < min_distance)
-            {
-                nearestTaxi = taxi2;
-                min_distance = Math.Abs(taxi2.CurrentLocation - startLocation);
-            }
-
-            if (Math.Abs(taxi3.CurrentLocation - startLocation) < min_distance)
-            {
-                nearestTaxi = taxi3;
-                min_distance = Math.Abs(taxi3.CurrentLocation - startLocation);
-            }
-
-            if (Math.Abs(taxi4.CurrentLocation - startLocation) < min_distance)
-            {
-                nearestTaxi = taxi4;
-                min_distance = Math.Abs(taxi4.CurrentLocation - startLocation);
-            }
-
-            if (min_distance > 15)
-                throw new Exception("There are no available taxi vehicles!");
-
-            #endregion
-
-            #region CreatingRide
-
             Ride ride = new Ride();
-            ride.TaxiInfo = nearestTaxi;
+            ride.TaxiInfo = FindNearestTaxi(startLocation);
             ride.StartLocation = startLocation;
             ride.EndLocation = endLocation;
-
-            #endregion
-
             CalculateRidePrice(ride, rideType, startLocation, endLocation, time);
 
             Console.WriteLine("Ride ordered, price: " + ride.Price.ToString());
@@ -69,25 +39,7 @@ namespace TaxiDispatcher.App
         {
             InMemoryRideDataBase.SaveRide(ride);
 
-            if (taxi1.DriverId == ride.TaxiInfo.DriverId)
-            {
-                taxi1.CurrentLocation = ride.EndLocation;
-            }
-
-            if (taxi2.DriverId == ride.TaxiInfo.DriverId)
-            {
-                taxi2.CurrentLocation = ride.EndLocation;
-            }
-
-            if (taxi3.DriverId == ride.TaxiInfo.DriverId)
-            {
-                taxi3.CurrentLocation = ride.EndLocation;
-            }
-
-            if (taxi4.DriverId == ride.TaxiInfo.DriverId)
-            {
-                taxi4.CurrentLocation = ride.EndLocation;
-            }
+            ride.TaxiInfo.CurrentLocation = ride.EndLocation;
 
             Console.WriteLine("Ride accepted, waiting for driver: " + ride.TaxiInfo.DriverName);
         }
@@ -104,6 +56,26 @@ namespace TaxiDispatcher.App
             }
 
             return rides;
+        }
+
+        private Taxi FindNearestTaxi(int startLocation)
+        {
+            Taxi nearestTaxi = null;
+            int min_distance = int.MaxValue;
+
+            foreach (var taxi in taxiDrivers)
+            {
+                if (Math.Abs(taxi.CurrentLocation - startLocation) < min_distance)
+                {
+                    nearestTaxi = taxi;
+                    min_distance = Math.Abs(taxi.CurrentLocation - startLocation);
+                }
+            }
+
+            if (min_distance > 15)
+                throw new Exception("There are no available taxi vehicles!");
+
+            return nearestTaxi;
         }
 
         private void CalculateRidePrice(Ride ride, RideType rideType, int startLocation, int endLocation, DateTime time)
