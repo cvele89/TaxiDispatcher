@@ -3,14 +3,20 @@ using System.Collections.Generic;
 
 namespace TaxiDispatcher.App
 {
+    public enum RideType
+    {
+        City,
+        InterCity
+    }
+
     public class Scheduler
     {
-        protected Taxi taxi1 = new Taxi { DriverId = 1, DriverName = "Predrag", CompanyName = "Naxi", CurrentLocation = 1};
-        protected Taxi taxi2 = new Taxi { DriverId = 2, DriverName = "Nenad", CompanyName = "Naxi", CurrentLocation = 4 };
-        protected Taxi taxi3 = new Taxi { DriverId = 3, DriverName = "Dragan", CompanyName = "Alfa", CurrentLocation = 6 };
-        protected Taxi taxi4 = new Taxi { DriverId = 4, DriverName = "Goran", CompanyName = "Gold", CurrentLocation = 7 };
+        protected Taxi taxi1 = new Taxi { DriverId = 1, DriverName = "Predrag", CompanyName = "Naxi", CurrentLocation = 1, PriceModifier = 10};
+        protected Taxi taxi2 = new Taxi { DriverId = 2, DriverName = "Nenad", CompanyName = "Naxi", CurrentLocation = 4, PriceModifier = 10 };
+        protected Taxi taxi3 = new Taxi { DriverId = 3, DriverName = "Dragan", CompanyName = "Alfa", CurrentLocation = 6, PriceModifier = 15 };
+        protected Taxi taxi4 = new Taxi { DriverId = 4, DriverName = "Goran", CompanyName = "Gold", CurrentLocation = 7, PriceModifier = 13 };
 
-        public Ride OrderRide(int startLocation, int endLocation, int ride_type, DateTime time)
+        public Ride OrderRide(int startLocation, int endLocation, RideType rideType, DateTime time)
         {
             #region FindingTheBestVehicle 
 
@@ -49,42 +55,7 @@ namespace TaxiDispatcher.App
 
             #endregion
 
-            #region CalculatingPrice
-
-            switch (nearestTaxi.CompanyName)
-            {
-                case "Naxi":
-                {
-                    ride.Price = 10 * Math.Abs(startLocation - endLocation);
-                    break;
-                }
-                case "Alfa":
-                {
-                    ride.Price = 15 * Math.Abs(startLocation - endLocation);
-                    break;
-                }
-                case "Gold":
-                {
-                    ride.Price = 13 * Math.Abs(startLocation - endLocation);
-                    break;
-                }
-                default:
-                {
-                    throw new Exception("Ilegal company");
-                }
-            }
-
-            if (ride_type == Constants.InterCity)
-            {
-                ride.Price *= 2;
-            }
-
-            if (time.Hour < 6 || time.Hour > 22)
-            {
-                ride.Price *= 2;
-            }
-
-            #endregion
+            CalculateRidePrice(ride, rideType, startLocation, endLocation, time);
 
             Console.WriteLine("Ride ordered, price: " + ride.Price.ToString());
             return ride;
@@ -131,12 +102,24 @@ namespace TaxiDispatcher.App
             return rides;
         }
 
+        private void CalculateRidePrice(Ride ride, RideType rideType, int startLocation, int endLocation, DateTime time)
+        {
+            ride.Price = ride.TaxiInfo.PriceModifier * Math.Abs(startLocation - endLocation);
+
+            if (rideType == RideType.InterCity)
+                ride.Price *= 2;
+            
+            if (time.Hour < 6 || time.Hour > 22)
+                ride.Price *= 2;
+        }
+
         public class Taxi
         {
             public int DriverId { get; set; }
             public string DriverName { get; set; }
             public string CompanyName { get; set; }
             public int CurrentLocation { get; set; }
+            public int PriceModifier { get; set; } = 1;
         }
 
         public class Ride
