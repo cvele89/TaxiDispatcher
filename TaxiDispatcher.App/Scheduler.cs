@@ -32,9 +32,10 @@ namespace TaxiDispatcher.App
                 {
                     TaxiInfo = FindNearestTaxi(startLocation),
                     StartLocation = startLocation,
-                    EndLocation = endLocation
+                    EndLocation = endLocation,
+                    RideType = rideType,
+                    Time = time
                 };
-                CalculateRidePrice(ride, rideType, startLocation, endLocation, time);
                 Console.WriteLine("Ride ordered, price: " + ride.Price.ToString());
                 AcceptRide(ride);
             }
@@ -94,17 +95,6 @@ namespace TaxiDispatcher.App
             return nearestTaxi;
         }
 
-        private void CalculateRidePrice(Ride ride, RideType rideType, int startLocation, int endLocation, DateTime time)
-        {
-            ride.Price = ride.TaxiInfo.Company.PriceModifier * Math.Abs(startLocation - endLocation);
-
-            if (rideType == RideType.InterCity)
-                ride.Price *= 2;
-            
-            if (time.Hour < 6 || time.Hour > 22)
-                ride.Price *= 2;
-        }
-
         public class Taxi
         {
             public int DriverId { get; set; }
@@ -119,7 +109,28 @@ namespace TaxiDispatcher.App
             public Taxi TaxiInfo { get; set; }
             public int StartLocation { get; set; }
             public int EndLocation { get; set; }
-            public int Price { get; set; }
+            public RideType RideType { get; set; }
+            public DateTime Time { get; set; }
+
+            private int _price = -1;
+            public int Price
+            {
+                get
+                {
+                    if (_price < 0)
+                    {
+                        _price = TaxiInfo.Company.PriceModifier * Math.Abs(StartLocation - EndLocation);
+
+                        if (RideType == RideType.InterCity)
+                            _price *= 2;
+
+                        if (Time.Hour < 6 || Time.Hour > 22)
+                            _price *= 2;
+                    }
+
+                    return _price;                    
+                }
+            }
         }
 
         public class TaxiCompany
