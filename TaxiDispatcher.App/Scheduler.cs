@@ -23,16 +23,31 @@ namespace TaxiDispatcher.App
             new Taxi { DriverId = 4, DriverName = "Goran", Company = taxiCompany_Gold, CurrentLocation = 7 }
         };
 
-        public Ride OrderRide(int startLocation, int endLocation, RideType rideType, DateTime time)
+        public void OrderRide(int startLocation, int endLocation, RideType rideType, DateTime time)
         {
-            Ride ride = new Ride();
-            ride.TaxiInfo = FindNearestTaxi(startLocation);
-            ride.StartLocation = startLocation;
-            ride.EndLocation = endLocation;
-            CalculateRidePrice(ride, rideType, startLocation, endLocation, time);
-
-            Console.WriteLine("Ride ordered, price: " + ride.Price.ToString());
-            return ride;
+            Console.WriteLine($"Ordering ride from {startLocation} to {endLocation}...");
+            try
+            {
+                Ride ride = new Ride
+                {
+                    TaxiInfo = FindNearestTaxi(startLocation),
+                    StartLocation = startLocation,
+                    EndLocation = endLocation
+                };
+                CalculateRidePrice(ride, rideType, startLocation, endLocation, time);
+                Console.WriteLine("Ride ordered, price: " + ride.Price.ToString());
+                AcceptRide(ride);
+            }
+            catch (Exception e)
+            {
+                if (e.Message == "There are no available taxi vehicles!")
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine("");
+                }
+                else
+                    throw;
+            }
         }
 
         public void AcceptRide(Ride ride)
@@ -42,6 +57,7 @@ namespace TaxiDispatcher.App
             ride.TaxiInfo.CurrentLocation = ride.EndLocation;
 
             Console.WriteLine("Ride accepted, waiting for driver: " + ride.TaxiInfo.DriverName);
+            Console.WriteLine("");
         }
 
         public List<Ride> GetRideList(int driverId)
