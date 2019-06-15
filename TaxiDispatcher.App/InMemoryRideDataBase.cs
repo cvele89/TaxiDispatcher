@@ -9,38 +9,38 @@ namespace TaxiDispatcher.App
 
         public static void SaveRide(Ride ride)
         {
-            int max_id = Rides.Count == 0 ? 0 : Rides[0].Ride_id;
+            int max_id = Rides.Count == 0 ? 0 : Rides[0].Id;
             foreach (Ride r in Rides)
             {
-                if (r.Ride_id > max_id)
-                    max_id = r.Ride_id;
+                if (r.Id > max_id)
+                    max_id = r.Id;
             }
 
-            ride.Ride_id = max_id + 1;
+            ride.Id = max_id + 1;
             Rides.Add(ride);
         }
 
         public static Ride GetRide(int id)
         {
             Ride ride = Rides[0];
-            bool found = ride.Ride_id == id;
+            bool found = ride.Id == id;
             int current = 1;
             while (!found)
             {
                 ride = Rides[current];
-                found = ride.Ride_id == id;
+                found = ride.Id == id;
                 current += 1;
             }
 
             return ride;
         }
 
-        public static List<int> GetRide_Ids()
+        public static List<int> GetRideIds()
         {
             List<int> ids = new List<int>();
             foreach (Ride ride in Rides)
             {
-                ids.Add(ride.Ride_id);
+                ids.Add(ride.Id);
             }
 
             return ids;
